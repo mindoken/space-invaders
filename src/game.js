@@ -2,6 +2,7 @@ import Sprite from './sprite'
 import Cannon from './cannon'
 import Bullet from './bullet'
 import Alien from './alien'
+import Bunker from './bunker';
 import InputHandler from './input-handler'
 
 import assetPath from '../assets/invaders.png'
@@ -17,6 +18,7 @@ const gameState = {
   enemyBullets: [],
   aliens: [],
   cannon: null,
+  bunker: [],
   alienDirection: 1,
   alienSpeed: 0.5,
   alienDropY: 20,
@@ -53,6 +55,15 @@ export function init(canvas) {
     100, canvas.height - 100,
     sprites.cannon
   );
+
+  const bunkerY = canvas.height - 130;
+  const centerX = canvas.width / 2 - sprites.bunker.w / 2;
+  const offset = 100;
+  gameState.bunker = [
+  new Bunker(centerX - offset, bunkerY, sprites.bunker, 2),
+  new Bunker(centerX, bunkerY, sprites.bunker, 2),
+  new Bunker(centerX + offset, bunkerY, sprites.bunker, 2)
+];
 
   CanvasHeight = canvas.height;
 }
@@ -126,7 +137,10 @@ export function draw(canvas, time) {
   gameState.aliens.forEach(a => a.draw(ctx, time));
   gameState.cannon.draw(ctx);
   gameState.bullets.forEach(b => b.draw(ctx));
+  gameState.bunker.forEach(b => {
+  if (!b.destroyed) b.draw(ctx);});
    gameState.enemyBullets.forEach(b => b.draw(ctx));
+   
 }
 
 export function moveAliens(canvasWidth) {
@@ -201,6 +215,32 @@ export function handleCollisions() {
       cannon.takeDamage(1);
     }
   }
+// Для вражеских пуль
+gameState.bunker.forEach(b => {
+  if (!b.destroyed) {
+    const bRect = { x: b.x, y: b.y, w: b.sprite.w, h: b.sprite.h };
+    gameState.enemyBullets.forEach(eb => {
+      if (!eb.destroyed && rectsIntersect({ x: eb.x, y: eb.y, w: eb.w, h: eb.h }, bRect)) {
+        eb.destroyed = true;
+        b.takeDamage(1);
+      }
+    });
+  }
+});
+
+// Для пуль игрока (опционально, если хотите, чтобы они тоже разрушали бункеры)
+gameState.bunker.forEach(b => {
+  if (!b.destroyed) {
+    const bRect = { x: b.x, y: b.y, w: b.sprite.w, h: b.sprite.h };
+    gameState.bullets.forEach(bullet => {
+      if (!bullet.destroyed && rectsIntersect({ x: bullet.x, y: bullet.y, w: bullet.w, h: bullet.h }, bRect)) {
+        bullet.destroyed = true;
+        b.takeDamage(1);  // Или убрать, если не хотите урона от своих пуль
+      }
+    });
+  }
+});
+        
 }
 
 
