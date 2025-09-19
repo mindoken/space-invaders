@@ -1,5 +1,5 @@
 export default class Alien {
-  constructor(x, y, [spriteA, spriteB], maxHp = 2) {
+  constructor(x, y, [spriteA, spriteB], maxHp = 1) {
     this.x = x;
   	this.y = y;
     this._spriteA = spriteA;
