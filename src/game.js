@@ -14,14 +14,14 @@ const sprites = {
 };
 const gameState = {
   bullets: [],
+  enemyBullets: [],
   aliens: [],
   cannon: null,
-  enemyBullets: [],
   alienDirection: 1,
   alienSpeed: 0.5,
   alienDropY: 20,
   lastEnemyFire:  0,
-  baseReload:     2000,
+  baseReload:     1000,
   score: 0,
   isGameOver:     false,
   isVictory:      false
@@ -47,8 +47,8 @@ export function preload(onPreloadComplete) {
 }
 
 export function init(canvas) {
-  circleFormation(sprites.aliens, 200, canvas.width / 2, canvas.height / 4);
-
+  //circleFormation(sprites.aliens, 200, canvas.width / 2, canvas.height / 4);
+   heartFormation(sprites.aliens, 170, canvas.width / 2, canvas.height / 3);
   gameState.cannon = new Cannon(
     100, canvas.height - 100,
     sprites.cannon
@@ -273,6 +273,42 @@ function splitFormation(spriteSets, canvasWidth) {
 
       let xR = canvasWidth - (30 + (halfCols - 1 - j) * 30) - spriteSets[type][0].w + (type === 1 ? 3 : 0);
       gameState.aliens.push(new Alien(xR, y, spriteSets[type], 3));
+    }
+  }
+}
+
+function heartFormation(spriteSets, scale, cx, cy) {
+  gameState.aliens = [];
+  const spacing = 25; // расстояние между пришельцами
+
+  // Пройдемся по сетке точек в прямоугольнике, содержащем сердце
+  // x и y — смещённые координаты относительно центра
+  // Уравнение сердца (в нормированных координатах):
+  // (x² + y² - 1)³ - x² * y³ <= 0
+  // Здесь x и y в диапазоне примерно [-1.5, 1.5]
+
+  const step = spacing / scale; // шаг в нормированных координатах
+
+  for (let x = -1.5; x <= 1.5; x += step) {
+    for (let y = -1.5; y <= 1.5; y += step) {
+      const val = Math.pow(x * x + y * y - 1, 3) - x * x * y * y * y;
+      if (val <= 0) { // точка внутри сердца
+
+        // Переводим нормированные координаты в пиксели
+        const px = cx + x * scale;
+        const py = cy - y * scale; // минус для правильной ориентации
+
+        // Выбираем случайный тип пришельца
+        const type = Math.floor(Math.random() * spriteSets.length);
+        const sprite = spriteSets[type][0];
+        const alienX = px - sprite.w / 2;
+        const alienY = py - sprite.h / 2;
+
+        // Проверка границ канваса (предполагается ширина 600)
+        if (alienX >= 0 && alienX + sprite.w <= 600 && alienY >= 0) {
+          gameState.aliens.push(new Alien(alienX, alienY, spriteSets[type], 3));
+        }
+      }
     }
   }
 }

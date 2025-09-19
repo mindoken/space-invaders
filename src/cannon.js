@@ -1,5 +1,5 @@
 export default class Cannon {
-  constructor(x, y, sprite, maxHp = 3) {
+  constructor(x, y, sprite, maxHp = 1) {
     this.x = x;
   	this.y = y;
     this._sprite = sprite;
